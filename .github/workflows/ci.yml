@@ -18,7 +18,7 @@ jobs:
       - name: Fetch veltrio-core
         run: ./scripts/fetch-core.sh
         env:
-          GH_TOKEN: ${{ secrets.CORE_RELEASES_TOKEN }}
+          GH_TOKEN: ${{ secrets.CORE_RELEASES_TOKEN || github.token }}
       # Everything below switches on once the Gradle project is committed.
       - uses: actions/setup-java@v4
         if: hashFiles('settings.gradle.kts') != ''

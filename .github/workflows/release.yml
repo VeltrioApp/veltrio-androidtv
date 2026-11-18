@@ -2,7 +2,7 @@ name: Release
 
 # Tag vX.Y.Z → signed release bundle (.aab) and APK attached to the release.
 #
-# Organisation secrets: CORE_RELEASES_TOKEN, ANDROID_KEYSTORE (base64),
+# Organisation secrets: CORE_RELEASES_TOKEN (optional), ANDROID_KEYSTORE (base64),
 #   ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: ./scripts/fetch-core.sh
         env:
-          GH_TOKEN: ${{ secrets.CORE_RELEASES_TOKEN }}
+          GH_TOKEN: ${{ secrets.CORE_RELEASES_TOKEN || github.token }}
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
