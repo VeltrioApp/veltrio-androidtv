@@ -1,0 +1,57 @@
+name: Release
+
+# Tag vX.Y.Z → signed release bundle (.aab) and APK attached to the release.
+#
+# Organisation secrets: CORE_RELEASES_TOKEN, ANDROID_KEYSTORE (base64),
+#   ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # hashFiles() isn't available in a job's `if`, so a cheap Linux job
+  # checks for the app project first.
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      project: ${{ steps.check.outputs.project }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        run: if test -f settings.gradle.kts; then echo project=true; else echo project=false; fi >> "$GITHUB_OUTPUT"
+
+  release:
+    needs: detect
+    if: needs.detect.outputs.project == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./scripts/fetch-core.sh
+        env:
+          GH_TOKEN: ${{ secrets.CORE_RELEASES_TOKEN }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 --decode > "$RUNNER_TEMP/release.jks"
+      - name: Build
+        run: ./gradlew bundleRelease assembleRelease
+        env:
+          VELTRIO_KEYSTORE: ${{ runner.temp }}/release.jks
+          VELTRIO_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          VELTRIO_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          VELTRIO_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      - name: Publish
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            $(find . -path '*/build/outputs/*' \( -name '*.aab' -o -name '*-release.apk' \)) \
+            --title "$GITHUB_REF_NAME" --generate-notes

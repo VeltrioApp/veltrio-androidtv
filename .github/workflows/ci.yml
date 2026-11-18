@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch veltrio-core
+        run: ./scripts/fetch-core.sh
+        env:
+          GH_TOKEN: ${{ secrets.CORE_RELEASES_TOKEN }}
+      # Everything below switches on once the Gradle project is committed.
+      - uses: actions/setup-java@v4
+        if: hashFiles('settings.gradle.kts') != ''
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        if: hashFiles('settings.gradle.kts') != ''
+      - name: Build and test
+        if: hashFiles('settings.gradle.kts') != ''
+        run: ./gradlew assembleDebug testDebugUnitTest
