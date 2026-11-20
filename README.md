@@ -1,24 +1,40 @@
 # Veltrio for Android TV
 
-Not started yet. This repository holds the CI/CD and the pinned
-[veltrio-core](https://github.com/VeltrioApp/veltrio-core) release the
-app will build on.
+The Veltrio app for Android TV and Google TV: the same features and screens
+as the phone app (and the macOS one it follows), driven with a remote.
 
-**Planned stack:** Kotlin + Compose for TV (leanback launcher, D-pad focus), minSdk 26.
+The phone app's repository, [veltrio-android](https://github.com/VeltrioApp/veltrio-android),
+is a git submodule in `android/`. Its `shared` module holds the core, the
+services, the libmpv player and the screens; this repository adds the `tv`
+module: the TV activity (the sections in a rail on the left), the leanback
+launcher entry and banner. In the shared screens, the TV app gets an amber
+focus frame on whatever the remote is on, and the player's remote keys:
 
-## The core
+- OK, or up: show the controls; down on a live channel: the channel list.
+- Left / right while the controls are hidden: 10 s back / forward (on a
+  live channel: the previous / next channel). Channel up / down zaps too.
+- Play / pause, rewind / fast forward (30 s).
+- Back hides the controls first, then leaves the player.
 
-`core.version` names the veltrio-core release to use;
-`scripts/fetch-core.sh` downloads its `veltrio-core-android.zip` into `core/`
-(gitignored). Needs [`gh`](https://cli.github.com) (signed in), or `VELTRIO_CORE_DIR=../veltrio-core` to
-build from a local checkout.
+## Build
 
-Same core artifact as veltrio-android. If the two apps end up sharing most UI code, consider one repo with phone and TV modules instead.
+```bash
+git clone --recurse-submodules https://github.com/VeltrioApp/veltrio-androidtv
+./scripts/fetch-core.sh          # the core, at the version android/core.version pins
+./gradlew :tv:assembleDebug      # tv/build/outputs/apk/debug/tv-debug.apk
+```
+
+JDK 21 and the Android SDK, as for the phone app. Updating the shared code:
+`git -C android pull origin main`, then commit the new submodule commit here.
 
 ## CI/CD
 
-- `ci.yml` — pushes to main, pull requests, manual runs: fetches the core, then builds and tests once
-  `settings.gradle.kts` exists. Until then it only checks the core download.
-- `release.yml` — tag `vX.Y.Z`: signed `.aab` + APK attached to the GitHub release (Play Console upload to add). Skipped until the project exists.
+- `ci.yml` — pushes to main, pull requests, manual runs: checks out the
+  submodule, fetches the core, builds the TV app.
+- `release.yml` — tag `vX.Y.Z`: signed `.aab` + APK attached to the GitHub
+  release.
 
-Organisation secrets used: `CORE_RELEASES_TOKEN` (optional: the repositories are public, so the workflow token can read core releases), `ANDROID_KEYSTORE`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`.
+Organisation secrets used: `CORE_RELEASES_TOKEN` (optional), `ANDROID_KEYSTORE`,
+`ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`;
+`VELTRIO_TRAKT_CLIENT_ID`, `VELTRIO_TRAKT_CLIENT_SECRET`, `VELTRIO_SIMKL_CLIENT_ID`
+(optional, for the Trakt and SIMKL accounts).
