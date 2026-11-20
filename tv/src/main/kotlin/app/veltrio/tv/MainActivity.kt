@@ -40,6 +40,7 @@ import app.veltrio.android.screens.HomeScreen
 import app.veltrio.android.screens.LibraryScreen
 import app.veltrio.android.screens.LiveScreen
 import app.veltrio.android.screens.SourcesScreen
+import app.veltrio.shared.i18n.tr
 import app.veltrio.shared.ui.Type
 import app.veltrio.shared.ui.VeltrioTheme
 
@@ -50,7 +51,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private val sections = listOf("Accueil", "Collection", "Direct", "Sources")
+private val sections get() = listOf(tr("Accueil"), tr("Collection"), tr("Direct"), tr("Sources"))
 
 /** The macOS sections on a TV: the wordmark and numbered sections in a rail
  *  on the left, search and settings below them; the section on the right. */
@@ -73,9 +74,9 @@ private fun Sections() {
             }
             Spacer(Modifier.weight(1f))
             // Setting a TV up with a remote is tedious: a phone's settings, one step away.
-            RailIcon(Icons.Outlined.PhoneAndroid, "Depuis un téléphone") { Nav.pair() }
-            RailIcon(Icons.Outlined.Search, "Rechercher") { Nav.search() }
-            RailIcon(Icons.Outlined.Settings, "Réglages") { Nav.settings() }
+            RailIcon(Icons.Outlined.PhoneAndroid, tr("Depuis un téléphone")) { Nav.pair() }
+            RailIcon(Icons.Outlined.Search, tr("Rechercher")) { Nav.search() }
+            RailIcon(Icons.Outlined.Settings, tr("Réglages")) { Nav.settings() }
         }
         Box(Modifier.weight(1f).fillMaxHeight()) {
             when (Nav.tab) {
