@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
@@ -71,6 +72,8 @@ private fun Sections() {
                 ) { Nav.tab = index }
             }
             Spacer(Modifier.weight(1f))
+            // Setting a TV up with a remote is tedious: a phone's settings, one step away.
+            RailIcon(Icons.Outlined.PhoneAndroid, "Depuis un téléphone") { Nav.pair() }
             RailIcon(Icons.Outlined.Search, "Rechercher") { Nav.search() }
             RailIcon(Icons.Outlined.Settings, "Réglages") { Nav.settings() }
         }
