@@ -1,5 +1,6 @@
 core/
 .gradle/
+.kotlin/
 build/
 local.properties
 .idea/

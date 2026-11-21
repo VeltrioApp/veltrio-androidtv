@@ -38,3 +38,7 @@ Organisation secrets used: `CORE_RELEASES_TOKEN` (optional), `ANDROID_KEYSTORE`,
 `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`;
 `VELTRIO_TRAKT_CLIENT_ID`, `VELTRIO_TRAKT_CLIENT_SECRET`, `VELTRIO_SIMKL_CLIENT_ID`
 (optional, for the Trakt and SIMKL accounts).
+
+## License
+
+Dual-licensed under either of [Apache-2.0](LICENSE-APACHE) or [MIT](LICENSE-MIT). libmpv (`dev.jdtech.mpv:libmpv`) is LGPL.
