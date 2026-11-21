@@ -44,9 +44,16 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Keystore
         run: echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 --decode > "$RUNNER_TEMP/release.jks"
+      - name: Version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then v="${GITHUB_REF_NAME#v}"; else v="0.0.1-dev.$GITHUB_RUN_NUMBER"; fi
+          echo "VERSION=$v" >> "$GITHUB_ENV"
+          echo "VERSION_CODE=$((100 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
       - name: Build
         run: ./gradlew :tv:bundleRelease :tv:assembleRelease
         env:
+          VELTRIO_VERSION_NAME: ${{ env.VERSION }}
+          VELTRIO_VERSION_CODE: ${{ env.VERSION_CODE }}
           VELTRIO_KEYSTORE: ${{ runner.temp }}/release.jks
           VELTRIO_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           VELTRIO_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
