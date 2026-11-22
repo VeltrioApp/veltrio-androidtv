@@ -3,6 +3,7 @@ package app.veltrio.tv
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,11 +26,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -59,24 +64,37 @@ private val sections get() = listOf(tr("Accueil"), tr("Collection"), tr("Direct"
 private fun Sections() {
     val p = VeltrioTheme.palette
     val first = remember { FocusRequester() }
+    var railFocused by remember { mutableStateOf(true) }
+    val collapsed = Nav.tab == 2 && !railFocused
+    val railWidth by animateDpAsState(if (collapsed) 58.dp else 200.dp, label = "railWidth")
     LaunchedEffect(Unit) { runCatching { first.requestFocus() } }
     Row(Modifier.fillMaxSize()) {
         Column(
-            Modifier.width(200.dp).fillMaxHeight().background(p.backgroundAlt).padding(vertical = 32.dp),
+            Modifier
+                .width(railWidth)
+                .fillMaxHeight()
+                .background(p.backgroundAlt)
+                .onFocusChanged { railFocused = it.hasFocus }
+                .padding(vertical = 32.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text("Veltrio", style = Type.displaySerif(28), color = p.textPrimary, modifier = Modifier.padding(start = 24.dp, bottom = 28.dp))
+            Text(
+                if (collapsed) "V" else "Veltrio",
+                style = Type.displaySerif(if (collapsed) 26 else 28),
+                color = if (collapsed) p.accent else p.textPrimary,
+                modifier = Modifier.padding(start = if (collapsed) 18.dp else 24.dp, bottom = 28.dp),
+            )
             sections.forEachIndexed { index, label ->
                 RailItem(
-                    "%02d".format(index + 1), label, index == Nav.tab,
+                    "%02d".format(index + 1), label, index == Nav.tab, collapsed,
                     if (index == Nav.tab) Modifier.focusRequester(first) else Modifier,
                 ) { Nav.tab = index }
             }
             Spacer(Modifier.weight(1f))
             // Setting a TV up with a remote is tedious: a phone's settings, one step away.
-            RailIcon(Icons.Outlined.PhoneAndroid, tr("Depuis un téléphone")) { Nav.pair() }
-            RailIcon(Icons.Outlined.Search, tr("Rechercher")) { Nav.search() }
-            RailIcon(Icons.Outlined.Settings, tr("Réglages")) { Nav.settings() }
+            RailIcon(Icons.Outlined.PhoneAndroid, tr("Depuis un téléphone"), collapsed) { Nav.pair() }
+            RailIcon(Icons.Outlined.Search, tr("Rechercher"), collapsed) { Nav.search() }
+            RailIcon(Icons.Outlined.Settings, tr("Réglages"), collapsed) { Nav.settings() }
         }
         Box(Modifier.weight(1f).fillMaxHeight()) {
             when (Nav.tab) {
@@ -90,26 +108,30 @@ private fun Sections() {
 }
 
 @Composable
-private fun RailItem(number: String, label: String, active: Boolean, modifier: Modifier, onClick: () -> Unit) {
+private fun RailItem(number: String, label: String, active: Boolean, collapsed: Boolean, modifier: Modifier, onClick: () -> Unit) {
     val p = VeltrioTheme.palette
     Row(
-        modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 24.dp, vertical = 12.dp),
+        modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = if (collapsed) 14.dp else 24.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Box(Modifier.width(3.dp).height(18.dp).background(if (active) p.accent else Color.Transparent))
-        Text(number, style = Type.mono(11, FontWeight.SemiBold), color = p.accentText)
-        Text(label.uppercase(), style = Type.eyebrow(12, 0.16f), color = if (active) p.textPrimary else p.textTertiary)
+        Text(number, style = Type.mono(11, FontWeight.SemiBold), color = if (active) p.accentText else p.textTertiary)
+        if (!collapsed) {
+            Text(label.uppercase(), style = Type.eyebrow(12, 0.16f), color = if (active) p.textPrimary else p.textTertiary, maxLines = 1)
+        }
     }
 }
 
 @Composable
-private fun RailIcon(icon: ImageVector, label: String, onClick: () -> Unit) {
+private fun RailIcon(icon: ImageVector, label: String, collapsed: Boolean, onClick: () -> Unit) {
     val p = VeltrioTheme.palette
     Row(
-        Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 24.dp, vertical = 12.dp),
+        Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = if (collapsed) 18.dp else 24.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Icon(icon, null, Modifier.size(20.dp), tint = p.textSecondary)
-        Text(label.uppercase(), style = Type.eyebrow(11, 0.16f), color = p.textSecondary)
+        if (!collapsed) {
+            Text(label.uppercase(), style = Type.eyebrow(11, 0.16f), color = p.textSecondary, maxLines = 1)
+        }
     }
 }
