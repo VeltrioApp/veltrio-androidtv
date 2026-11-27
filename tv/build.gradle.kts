@@ -12,7 +12,7 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = System.getenv("VELTRIO_VERSION_CODE")?.toIntOrNull() ?: 1
-        versionName = System.getenv("VELTRIO_VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "0.1.0"
+        versionName = System.getenv("VELTRIO_VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "1.0.0"
     }
 
     // Release signing from the environment (the release workflow decodes the
